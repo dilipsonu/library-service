@@ -1,0 +1,60 @@
+evaluationDependsOn(":service")
+
+apply plugin: 'java'
+
+dependencies {
+    testCompile project(':service')
+    testCompile("com.jayway.restassured:rest-assured:2.4.1") {
+           exclude group: 'org.codehaus.groovy', module: 'groovy-all'
+    }
+    testCompile 'info.cukes:cucumber-java:1.2.4'
+    testCompile 'info.cukes:cucumber-junit:1.2.4'
+    testCompile 'info.cukes:cucumber-spring:1.2.4'
+    testCompile 'junit:junit:4.11'
+}
+
+configurations {
+    cucumberRuntime {
+        extendsFrom testRuntime
+    }
+}
+
+task featureComponents(type: JavaExec, dependsOn: [assemble, compileTestJava, testClasses]) {
+    
+
+    main = "cucumber.api.cli.Main"
+
+    classpath = configurations.cucumberRuntime + sourceSets.main.output + sourceSets.test.output
+
+    jvmArgs = ["-Xms512m", "-Xmx512m",
+               "-DJASYPT_ENCRYPTOR_PASSWORD=LibraryService@Passw0rd",
+               "-Dspring.profiles.active=stub", "-Dspring.config" +
+                       ".name=application,component"]
+
+    args = ['--plugin', 'pretty',
+            '--plugin', 'html:build/reports/cucumber/component',
+            '--glue', 'com.dk.library.test.component' +
+                    '.stepdefs',
+            'src/test/cucumber/component',
+            '--glue', 'com.dk.library.test.common.stepdefs',
+            '--tags', '~@pending'
+    ]
+}
+
+task featureFusion(type: JavaExec, dependsOn: [assemble, compileTestJava]) {
+
+    main = "cucumber.api.cli.Main"
+
+    classpath = configurations.cucumberRuntime + sourceSets.main.output + sourceSets.test.output
+
+    jvmArgs = ["-Xms512m", "-Xmx512m", 
+               "-DJASYPT_ENCRYPTOR_PASSWORD=LibraryService@Passw0rd",
+               "-Dspring.profiles.active=release"]
+
+    args = ['--plugin', 'pretty',
+            '--plugin', 'html:build/reports/cucumber/fusion',
+            '--glue', 'com.dk.library.test.fusion.stepdefs', 'src/test/cucumber/fusion',
+            '--glue', 'com.dk.library.test.common.stepdefs',
+            '--tags', '~@pending'
+    ]
+}

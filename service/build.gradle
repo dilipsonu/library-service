@@ -1,0 +1,143 @@
+apply plugin: 'spring-boot'
+
+group 'com.dk.library'
+
+configurations {
+    archives
+    querydslapt
+    archivesJenkins.extendsFrom archives
+
+}
+
+dependencies {
+
+
+
+    compile("org.springframework.boot:spring-boot-starter-actuator:$springBootVersion")
+    compile("org.springframework.boot:spring-boot-actuator-docs:$springBootVersion")
+    compile("org.springframework.boot:spring-boot-starter-web:$springBootVersion")
+    compile("org.springframework.boot:spring-boot-starter-aop:$springBootVersion")
+    compile("org.springframework.cloud:spring-cloud-config-client:$springCloudConfigVersion")
+    compile("org.springframework.boot:spring-boot-test:$springBootVersion")
+    compile("org.springframework.boot:spring-boot-starter-data-rest:$springBootVersion")
+    compile("org.springframework.boot:spring-boot-starter-data-jpa:$springBootVersion")
+    compile("org.springframework.data:spring-data-rest-hal-browser:$halBrowserVersion")
+    compile("org.springframework:spring-jdbc:$springJDBC")
+
+    compile("org.projectlombok:lombok:$lombokVersion")
+
+
+    compile("com.h2database:h2:+")
+    compile("joda-time:joda-time:$jodaTimeVersion")
+
+    compile("com.fasterxml.jackson.datatype:jackson-datatype-joda:$jacksonDatatypeVersion")
+
+    compile("io.springfox:springfox-data-rest:$swaggerVersion")
+    compile("io.springfox:springfox-swagger2:$swaggerVersion")
+    compile("io.springfox:springfox-swagger-ui:$swaggerVersion")
+
+    compile("com.github.ulisesbocchio:jasypt-spring-boot-starter:$jasyptSpringbootStarterVersion")
+
+
+    compile("com.mchange:c3p0:$c3p0Version")
+
+    compile("org.mariadb.jdbc:mariadb-java-client:$mariaDB")
+
+
+    testCompile 'junit:junit:4.12'
+    testCompile("org.springframework.boot:spring-boot-starter-test:$springBootVersion")
+    testCompile("org.springframework.restdocs:spring-restdocs-mockmvc:1.0.1.RELEASE")
+    testCompile('com.jayway.jsonpath:json-path:0.8.1')
+
+    //Query DSL
+    compile "com.querydsl:querydsl-jpa:4.1.4"
+    compile "com.querydsl:querydsl-apt:4.1.4"
+
+}
+
+springBoot {
+    mainClass = "com.dk.library" +
+            ".LibraryApplication"
+}
+
+bootRun {
+
+    jvmArgs = ["-Xms512m", "-Xmx512m", "-DJASYPT_ENCRYPTOR_PASSWORD=LibraryService@Passw0rd"]
+
+}
+
+def shortSha() {
+    project.gitSha.substring(0, 7)
+}
+
+task setVersion {
+    if ("$version" != "unspecified") {
+        version = "$version"
+    } else {
+        version = '1.0.0-LOCAL'
+    }
+}
+
+jar {
+    baseName = 'library-service'
+    version = "$version"
+}
+
+
+
+
+uploadArchivesJenkins {
+    repositories {
+        ivy {
+            layout 'maven'
+            credentials {
+                username System.getenv('ARTIFACTORY_USERNAME')
+                password System.getenv('ARTIFACTORY_PASSWORD')
+            }
+            url "http://test.dk/artifactory/local-non-prod"
+        }
+    }
+}
+
+uploadArchivesJenkins.dependsOn bootRepackage
+
+//Query DSL
+sourceSets {
+    generated {
+        java {
+            srcDirs = ["src/main/generated"]
+        }
+    }
+}
+
+
+
+task generateQueryDSL(type: JavaCompile, group: "build") {
+    source = sourceSets.main.java
+    classpath = configurations.compile + configurations.querydslapt
+    options.compilerArgs = [
+            "-proc:only",
+            "-processor",
+            "com.querydsl.apt.jpa.JPAAnnotationProcessor"
+    ]
+    destinationDir = sourceSets.generated.java.srcDirs.iterator().next()
+}
+
+compileJava {
+    dependsOn generateQueryDSL
+    source generateQueryDSL.destinationDir
+}
+
+compileGeneratedJava {
+    dependsOn generateQueryDSL
+    classpath += sourceSets.main.runtimeClasspath
+}
+
+// Optional - Uncomment if you want to clean and rebuild your Q-Classes every // build:
+//
+ clean {
+     delete sourceSets.generated.java.srcDirs
+ }
+
+
+

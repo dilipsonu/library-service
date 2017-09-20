@@ -1,0 +1,18 @@
+jasypt:
+  encryptor:
+    password: ${JASYPT_ENCRYPTOR_PASSWORD:}
+server:
+  contextPath: /library-service
+  port: 8080
+
+management:
+  context-path: /_manage
+
+
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: update
+
+
+

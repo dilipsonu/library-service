@@ -1,0 +1,78 @@
+defaultTasks = ['clean', 'build', 'sonar', 'featureComponents']
+
+group 'com.dk.library'
+
+buildscript {
+    apply from: 'properties.gradle'
+    repositories {
+        mavenCentral()
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+        classpath "com.moowork.gradle:gradle-node-plugin:0.12"
+        classpath('com.github.jengelman.gradle.plugins:gradle-processes:0.3.0')
+    }
+}
+
+apply plugin: 'base'
+apply plugin: 'com.github.johnrengelman.processes'
+
+configurations {
+    archives
+    pipeline
+}
+
+allprojects {
+    apply plugin: 'idea'
+    apply plugin: 'eclipse'
+
+    repositories {
+        mavenCentral()
+    }
+
+    eclipse {
+        classpath {
+            containers.remove('org.eclipse.jdt.launching.JRE_CONTAINER')
+            containers 'org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.7'
+        }
+    }
+}
+
+subprojects {
+    apply plugin: 'java'
+
+    test {
+        jvmArgs = ["-Xms512m", "-Xmx512m", "-DJASYPT_ENCRYPTOR_PASSWORD=LibraryService@Passw0rd"]
+    }
+
+    defaultTasks "test"
+
+    project.dependencies {
+        testCompile "$junitDependency"
+        testCompile "$hamcrestDependency"
+
+        testCompile("org.springframework.boot:spring-boot-starter-test:$springBootVersion")
+
+
+    }
+
+    configurations.each {
+        if (it.getName().equals('compile') || it.getName().equals('runtime')) {
+            it.exclude module: 'jackson-module-scala_2.10', group: 'com.fasterxml.jackson.module'
+        }
+    }
+
+    sourceCompatibility = javaVersion
+    targetCompatibility = javaVersion
+
+    repositories {
+        mavenCentral()
+    }
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.12'
+}

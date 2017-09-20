@@ -1,0 +1,38 @@
+apply plugin: 'net.foragerr.jmeter'
+
+buildscript {
+    repositories { 
+        mavenCentral()
+        maven {url 'https://dl.bintray.com/jmeter-gradle-plugin/jmeter'}
+    }
+    dependencies {
+        classpath "net.foragerr.jmeter:jmeter-gradle-plugin:1.0.6-2.13"
+    }
+
+}
+
+task runPerformanceTest(dependsOn: [jmRun, jmReport]) {
+
+    def perfTestFile = project.hasProperty("perfTestFile") ? project.getProperty("perfTestFile") : "perf-test"
+
+    jmeter {
+        jmTestFiles = [file("src/test/"+perfTestFile+"/"+perfTestFile+".jmx")]
+        enableReports = true
+        enableExtendedReports = true
+        jmUserProperties = [
+                "HOSTNAME=" + (project.hasProperty('hostName') ? project.property('hostName') : 'localhost'),
+                "THREAD_NUM=" + (project.hasProperty('threadNum') ? project.property('threadNum') : '20'),
+                "RAMP_UP_PERIOD=" + (project.hasProperty('rampUpPeriod') ? project.property('rampUpPeriod') : '2'),
+                "LOOP_COUNT=" + (project.hasProperty('loopCount') ? project.property('loopCount') : '4'),
+                "LDAP_USER=" + (System.getenv('LDAP_USERNAME')),
+                "LDAP_PASSWORD=" + (System.getenv('LDAP_PASSWORD')),
+                "TARGET_THROUGHPUT=" + (project.hasProperty('targetThroughput') ? project.property('targetThroughput') : '600')
+        ]
+    }
+}
+
+jmReport.shouldRunAfter jmRun
+
+
+
+

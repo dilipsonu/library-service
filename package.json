@@ -1,0 +1,8 @@
+{
+  "name": "mountebank-forever",
+  "version": "1.0.0",
+  "dependencies": {
+    "forever": "^0.15.1",
+    "mountebank": "^1.5.1"
+  }
+}

@@ -1,0 +1,10 @@
+spring:
+  application:
+    name: library-service
+  profiles:
+    active: local
+  cloud:
+    config:
+      label: master
+      enabled: false
+      uri: http://spring-config-server.dk.com/

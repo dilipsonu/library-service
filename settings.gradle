@@ -1,0 +1,5 @@
+rootProject.name='library-service'
+
+include 'service'
+include 'acceptance-tests'
+include 'performance-tests'

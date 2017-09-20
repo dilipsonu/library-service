@@ -1,0 +1,30 @@
+jasypt:
+  encryptor:
+    password: ${JASYPT_ENCRYPTOR_PASSWORD:}
+server:
+  contextPath: /library-service
+  port: 8080
+
+management:
+  context-path: /_manage
+
+
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: update
+
+
+library:
+  db:
+      username: library
+      password: ENC(Rs2HKDlkX9auEYbWhnVQhA==)
+      jdbc-url: jdbc:mariadb://localhost:3306/library
+      min-pool-size: 10
+      max-pool-size: 75
+      initial-pool-size: 4
+      acquire-increment: 2
+      idle-test-period: 100
+      max-statements: 100
+      checkout-timeout: 30000
+      driverClassName: org.mariadb.jdbc.Driver

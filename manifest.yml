@@ -1,0 +1,7 @@
+applications:
+- name: library-service
+  buildpack: https://github.com/cloudfoundry/java-buildpack.git
+  instances: 1
+  memory: 512M
+  env:
+   JBP_CONFIG_OPENJDK: 'version: 1.8.+'
